@@ -15,7 +15,7 @@
 		}
 	],
 	"vars": {
-		"PUBLIC_SITE_URL": "https://tftt.workers.dev"
+		"PUBLIC_SITE_URL": "https://tftt.saltbo.workers.dev"
 	},
 	"triggers": {
 		"crons": ["0 13 * * *"]
