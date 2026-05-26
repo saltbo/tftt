@@ -28,10 +28,24 @@ class MemoryKV {
 function articlePayload(overrides = {}) {
 	return {
 		title: "Canadian bank account signup bonuses",
-		summary: "Current banking offers for Canadian chequing accounts.",
+		description: "Current banking offers for Canadian chequing accounts.",
 		body: "Offer summary.\n\nEligibility notes.",
+		offerRows: [
+			{
+				institution: "Example Bank",
+				accountName: "Example Chequing",
+				offerValue: "$400",
+				offerSummary: "Bonus for eligible new chequing clients.",
+				deadline: "2026-06-30",
+				eligibility: "New clients only.",
+				requiredActions: ["Open an account", "Set up payroll deposit"],
+				fees: "$16.95 monthly fee unless waived.",
+				sourceUrl: "https://example.com/offer",
+			},
+		],
 		status: "published",
 		sources: [{ title: "Bank offer page", url: "https://example.com/offer" }],
+		checkedAt: "2026-05-26T12:00:00.000Z",
 		disclaimer: "This is informational content, not financial advice.",
 		updatedAt: "2026-05-26T12:00:00.000Z",
 		...overrides,
@@ -80,6 +94,7 @@ test("PUT /api/articles/[slug] creates then updates an article", async () => {
 	assert.deepEqual(await readJson(created), {
 		article: {
 			...articlePayload(),
+			summary: "Current banking offers for Canadian chequing accounts.",
 			slug: "canadian-bank-bonuses",
 		},
 	});
@@ -90,7 +105,7 @@ test("PUT /api/articles/[slug] creates then updates an article", async () => {
 		request: new Request("https://example.com/api/articles/canadian-bank-bonuses", {
 			method: "POST",
 			headers,
-			body: JSON.stringify(articlePayload({ summary: "Updated summary." })),
+			body: JSON.stringify(articlePayload({ description: "Updated summary." })),
 		}),
 	});
 
@@ -165,6 +180,42 @@ test("PUT /api/articles/[slug] rejects invalid source URLs", async () => {
 	assert.equal(response.status, 400);
 	assert.deepEqual(await readJson(response), {
 		error: "sources[0].url must be a valid URL",
+	});
+});
+
+test("PUT /api/articles/[slug] rejects incomplete banking offers", async () => {
+	const response = await putArticle({
+		locals: { runtime: { env: { TFTT_API_TOKEN: "secret", GENERATED_ARTICLES: new MemoryKV() } } },
+		params: { slug: "bad-offer" },
+		request: new Request("https://example.com/api/articles/bad-offer", {
+			method: "PUT",
+			headers: {
+				authorization: "Bearer secret",
+				"content-type": "application/json",
+			},
+			body: JSON.stringify(
+				articlePayload({
+					offerRows: [
+						{
+							institution: "Example Bank",
+							accountName: "Example Chequing",
+							offerValue: "$400",
+							offerSummary: "Bonus.",
+							deadline: "2026-06-30",
+							eligibility: "New clients.",
+							requiredActions: [],
+							fees: "$16.95 monthly fee.",
+							sourceUrl: "https://example.com/offer",
+						},
+					],
+				}),
+			),
+		}),
+	});
+
+	assert.equal(response.status, 400);
+	assert.deepEqual(await readJson(response), {
+		error: "offerRows[0].requiredActions must be a non-empty array",
 	});
 });
 

@@ -10,13 +10,28 @@ export type GeneratedArticleSource = {
 	url: string;
 };
 
+export type GeneratedArticleOfferRow = {
+	institution: string;
+	accountName: string;
+	offerValue: string;
+	offerSummary: string;
+	deadline: string;
+	eligibility: string;
+	requiredActions: string[];
+	fees: string;
+	sourceUrl: string;
+};
+
 export type GeneratedArticle = {
 	slug: string;
 	title: string;
+	description: string;
 	summary: string;
 	body: string;
+	offerRows: GeneratedArticleOfferRow[];
 	status: GeneratedArticleStatus;
 	sources: GeneratedArticleSource[];
+	checkedAt: string;
 	disclaimer: string;
 	updatedAt: string;
 	publishedAt?: string;
@@ -24,10 +39,13 @@ export type GeneratedArticle = {
 
 export type GeneratedArticleInput = {
 	title?: unknown;
+	description?: unknown;
 	summary?: unknown;
 	body?: unknown;
+	offerRows?: unknown;
 	status?: unknown;
 	sources?: unknown;
+	checkedAt?: unknown;
 	disclaimer?: unknown;
 	updatedAt?: unknown;
 	publishedAt?: unknown;
@@ -41,8 +59,10 @@ export type GeneratedArticleUpsert = {
 type ArticleIndexEntry = {
 	slug: string;
 	title: string;
+	description: string;
 	summary: string;
 	status: GeneratedArticleStatus;
+	checkedAt: string;
 	updatedAt: string;
 	publishedAt?: string;
 };
@@ -97,10 +117,11 @@ export function normalizeSlug(value: string): string {
 function normalizeGeneratedArticle(slugValue: string, input: GeneratedArticleInput): GeneratedArticle {
 	const slug = normalizeSlug(slugValue);
 	const title = requiredString(input.title, "title");
-	const summary = requiredString(input.summary, "summary");
+	const description = requiredString(input.description ?? input.summary, "description");
 	const body = requiredString(input.body, "body");
 	const disclaimer = requiredString(input.disclaimer, "disclaimer");
 	const status = normalizeStatus(input.status);
+	const checkedAt = normalizeDate(input.checkedAt ?? input.updatedAt ?? new Date().toISOString(), "checkedAt");
 	const updatedAt = normalizeDate(input.updatedAt ?? new Date().toISOString(), "updatedAt");
 	const publishedAt =
 		input.publishedAt === undefined ? undefined : normalizeDate(input.publishedAt, "publishedAt");
@@ -108,10 +129,13 @@ function normalizeGeneratedArticle(slugValue: string, input: GeneratedArticleInp
 	return {
 		slug,
 		title,
-		summary,
+		description,
+		summary: description,
 		body,
+		offerRows: normalizeOfferRows(input.offerRows),
 		status,
 		sources: normalizeSources(input.sources),
+		checkedAt,
 		disclaimer,
 		updatedAt,
 		publishedAt,
@@ -123,8 +147,10 @@ async function putArticleIndex(store: KVNamespace, article: GeneratedArticle): P
 	const nextEntry: ArticleIndexEntry = {
 		slug: article.slug,
 		title: article.title,
+		description: article.description,
 		summary: article.summary,
 		status: article.status,
+		checkedAt: article.checkedAt,
 		updatedAt: article.updatedAt,
 		publishedAt: article.publishedAt,
 	};
@@ -200,4 +226,59 @@ function normalizeSources(value: unknown): GeneratedArticleSource[] {
 
 		return { title, url: parsed.toString() };
 	});
+}
+
+function normalizeOfferRows(value: unknown): GeneratedArticleOfferRow[] {
+	if (!Array.isArray(value) || value.length === 0) {
+		throw new ArticleValidationError("offerRows must be a non-empty array");
+	}
+
+	return value.map((offer, index) => {
+		if (typeof offer !== "object" || offer === null) {
+			throw new ArticleValidationError(`offerRows[${index}] must be an object`);
+		}
+
+		const record = offer as Record<string, unknown>;
+		const sourceUrl = normalizeHttpsUrl(
+			requiredString(record.sourceUrl, `offerRows[${index}].sourceUrl`),
+			`offerRows[${index}].sourceUrl`,
+		);
+
+		return {
+			institution: requiredString(record.institution, `offerRows[${index}].institution`),
+			accountName: requiredString(record.accountName, `offerRows[${index}].accountName`),
+			offerValue: requiredString(record.offerValue, `offerRows[${index}].offerValue`),
+			offerSummary: requiredString(record.offerSummary, `offerRows[${index}].offerSummary`),
+			deadline: requiredString(record.deadline, `offerRows[${index}].deadline`),
+			eligibility: requiredString(record.eligibility, `offerRows[${index}].eligibility`),
+			requiredActions: normalizeRequiredActions(record.requiredActions, index),
+			fees: requiredString(record.fees, `offerRows[${index}].fees`),
+			sourceUrl,
+		};
+	});
+}
+
+function normalizeRequiredActions(value: unknown, offerIndex: number): string[] {
+	if (!Array.isArray(value) || value.length === 0) {
+		throw new ArticleValidationError(`offerRows[${offerIndex}].requiredActions must be a non-empty array`);
+	}
+
+	return value.map((action, index) =>
+		requiredString(action, `offerRows[${offerIndex}].requiredActions[${index}]`),
+	);
+}
+
+function normalizeHttpsUrl(url: string, field: string): string {
+	let parsed: URL;
+	try {
+		parsed = new URL(url);
+	} catch {
+		throw new ArticleValidationError(`${field} must be a valid URL`);
+	}
+
+	if (parsed.protocol !== "https:") {
+		throw new ArticleValidationError(`${field} must use https`);
+	}
+
+	return parsed.toString();
 }

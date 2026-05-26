@@ -21,14 +21,29 @@ const paragraphs = article.body.split(/\n{2,}/).map((paragraph) => paragraph.tri
 <!doctype html>
 <html lang="en">
 	<head>
-		<BaseHead title={article.title} description={article.summary} />
+		<BaseHead title={article.title} description={article.description} />
 		<style>
 			main {
-				width: 720px;
+				width: min(960px, calc(100% - 2rem));
 			}
 			.date,
 			.disclaimer {
 				color: rgb(var(--gray));
+			}
+			.offer-table {
+				border-collapse: collapse;
+				margin: 2rem 0;
+				width: 100%;
+			}
+			.offer-table th,
+			.offer-table td {
+				border-bottom: 1px solid rgb(var(--gray-light));
+				padding: 0.75rem;
+				text-align: left;
+				vertical-align: top;
+			}
+			.offer-table th {
+				background: rgb(var(--gray-light));
 			}
 			.sources {
 				margin-top: 2rem;
@@ -48,10 +63,50 @@ const paragraphs = article.body.split(/\n{2,}/).map((paragraph) => paragraph.tri
 		<main>
 			<article>
 				<p class="date">
-					Updated <FormattedDate date={new Date(article.updatedAt)} />
+					Updated <FormattedDate date={new Date(article.updatedAt)} /> · Checked <FormattedDate date={new Date(article.checkedAt)} />
 				</p>
 				<h1>{article.title}</h1>
-				<p><strong>{article.summary}</strong></p>
+				<p><strong>{article.description}</strong></p>
+				<table class="offer-table">
+					<thead>
+						<tr>
+							<th>Institution</th>
+							<th>Offer</th>
+							<th>Eligibility</th>
+							<th>Actions</th>
+							<th>Fees</th>
+						</tr>
+					</thead>
+					<tbody>
+						{
+							article.offerRows.map((offer) => (
+								<tr>
+									<td>
+										<a href={offer.sourceUrl}>{offer.institution}</a>
+										<br />
+										{offer.accountName}
+									</td>
+									<td>
+										<strong>{offer.offerValue}</strong>
+										<br />
+										{offer.offerSummary}
+										<br />
+										Deadline: {offer.deadline}
+									</td>
+									<td>{offer.eligibility}</td>
+									<td>
+										<ul>
+											{offer.requiredActions.map((action) => (
+												<li>{action}</li>
+											))}
+										</ul>
+									</td>
+									<td>{offer.fees}</td>
+								</tr>
+							))
+						}
+					</tbody>
+				</table>
 				{paragraphs.map((paragraph) => <p>{paragraph}</p>)}
 				<section class="sources" aria-labelledby="sources-heading">
 					<h2 id="sources-heading">Sources</h2>

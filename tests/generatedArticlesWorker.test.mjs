@@ -12,10 +12,24 @@ const repoRoot = new URL("..", import.meta.url).pathname;
 function articlePayload(overrides = {}) {
 	return {
 		title: "Canadian bank account signup bonuses",
-		summary: "Current banking offers for Canadian chequing accounts.",
+		description: "Current banking offers for Canadian chequing accounts.",
 		body: "Offer summary.\n\nEligibility notes.",
+		offerRows: [
+			{
+				institution: "Example Bank",
+				accountName: "Example Chequing",
+				offerValue: "$400",
+				offerSummary: "Bonus for eligible new chequing clients.",
+				deadline: "2026-06-30",
+				eligibility: "New clients only.",
+				requiredActions: ["Open an account", "Set up payroll deposit"],
+				fees: "$16.95 monthly fee unless waived.",
+				sourceUrl: "https://example.com/offer",
+			},
+		],
 		status: "published",
 		sources: [{ title: "Bank offer page", url: "https://example.com/offer" }],
+		checkedAt: "2026-05-26T12:00:00.000Z",
 		disclaimer: "This is informational content, not financial advice.",
 		updatedAt: "2026-05-26T12:00:00.000Z",
 		...overrides,
