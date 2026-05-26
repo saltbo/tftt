@@ -10,6 +10,9 @@ export default defineConfig({
 	site: "https://example.com",
 	integrations: [mdx(), sitemap()],
 	adapter: cloudflare({
+		workerEntryPoint: {
+			path: "src/worker.ts",
+		},
 		platformProxy: {
 			enabled: true,
 		},

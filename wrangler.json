@@ -7,6 +7,19 @@
 		"directory": "./dist",
 		"binding": "ASSETS"
 	},
+	"kv_namespaces": [
+		{
+			"binding": "GENERATED_ARTICLES",
+			"id": "af109e32df3047908353491583f39eda",
+			"preview_id": "c41cb603f0a4488a9fe4b6829dce4a49"
+		}
+	],
+	"vars": {
+		"PUBLIC_SITE_URL": "https://tftt.workers.dev"
+	},
+	"triggers": {
+		"crons": ["0 13 * * *"]
+	},
 	"observability": {
 		"enabled": true
 	},
