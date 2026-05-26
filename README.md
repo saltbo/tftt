@@ -83,14 +83,28 @@ curl -X PUT "https://example.com/api/articles/canadian-bank-account-signup-bonus
   -H "Content-Type: application/json" \
   --data '{
     "title": "Canadian bank account signup bonuses",
-    "summary": "Current Canadian chequing account signup offers.",
+    "description": "Current Canadian chequing account signup offers.",
     "body": "Generated article body.",
+    "offerRows": [{
+      "institution": "Example Bank",
+      "accountName": "Example Chequing",
+      "offerValue": "$400",
+      "offerSummary": "Bonus for eligible new chequing clients.",
+      "deadline": "2026-06-30",
+      "eligibility": "New clients only.",
+      "requiredActions": ["Open an account", "Set up payroll deposit"],
+      "fees": "$16.95 monthly fee unless waived.",
+      "sourceUrl": "https://example.com/offer"
+    }],
     "status": "published",
     "sources": [{"title": "Bank offer page", "url": "https://example.com/offer"}],
+    "checkedAt": "2026-05-26T12:00:00.000Z",
     "disclaimer": "Informational content only, not financial advice.",
     "updatedAt": "2026-05-26T12:00:00.000Z"
   }'
 ```
+
+See `docs/ama-banking-bonus-agent.md` for the MCP tool contract and AMA agent instructions.
 
 Manual generation trigger:
 

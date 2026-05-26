@@ -15,13 +15,22 @@ Static Markdown remains supported, but generated content is read from KV at requ
 Both API surfaces require `Authorization: Bearer <TFTT_API_TOKEN>`. Tokens, AMA API URLs,
 and AMA credentials are Cloudflare bindings/secrets only.
 
+Generated article payloads require `title`, `description`, `body`, `status`, `sources`,
+`checkedAt`, `disclaimer`, and at least one `offerRows` entry. Each offer row requires
+`institution`, `accountName`, `offerValue`, `offerSummary`, `deadline`, `eligibility`,
+`requiredActions`, `fees`, and an HTTPS `sourceUrl`.
+
+The MCP-facing publication contract is documented in `docs/ama-banking-bonus-agent.md`.
+MCP tooling should call the same API so tftt remains the validation and storage boundary.
+
 ## Trigger flow
 
 The manual trigger endpoint and the Worker `scheduled()` handler both call
 `runBankingBonusTrigger()`. That function creates an AMA session through
-`AMA_API_BASE_URL` and `AMA_API_TOKEN`, passing instructions and the callback target for
-the article upsert endpoint. KV is enough for this first surface because tftt only needs
-small list/detail reads; D1 is the upgrade path if generated article querying grows.
+`AMA_API_BASE_URL` and `AMA_API_TOKEN`, passing `AMA_AGENT_ID`, `AMA_ENVIRONMENT_ID`, an
+initial prompt, and metadata containing the callback target for the article upsert endpoint.
+KV is enough for this first surface because tftt only needs small list/detail reads; D1 is
+the upgrade path if generated article querying grows.
 
 ## Rendering
 

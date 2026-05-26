@@ -50,7 +50,8 @@ export async function runBankingBonusTrigger(
 			initialPrompt: [
 				"Research current Canadian bank account signup bonuses.",
 				"Focus on Canadian chequing or bank account opening offers from primary bank sources.",
-				"Include offer value, deadlines, eligibility limits, fees, required actions, source URLs, updatedAt, and a clear informational disclaimer.",
+				"Produce JSON with title, description, markdown body, offerRows, sources, checkedAt, disclaimer, updatedAt, and status.",
+				"Each offerRows entry must include institution, accountName, offerValue, offerSummary, deadline, eligibility, requiredActions, fees, and an HTTPS sourceUrl.",
 				`Publish or update the generated tftt article by calling ${publishTarget.method} ${publishTarget.url} with the article JSON payload and the configured ${publishTarget.authorizationSecretName} bearer token.`,
 			].join(" "),
 		}),

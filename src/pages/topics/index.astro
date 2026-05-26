@@ -56,7 +56,7 @@ const articles = (await listGeneratedArticles(Astro.locals.runtime.env.GENERATED
 								<p class="date">
 									Updated <FormattedDate date={new Date(article.updatedAt)} />
 								</p>
-								<p>{article.summary}</p>
+								<p>{article.description}</p>
 							</a>
 						</li>
 					))
