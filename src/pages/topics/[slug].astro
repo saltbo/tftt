@@ -1,0 +1,73 @@
+---
+import BaseHead from "../../components/BaseHead.astro";
+import Header from "../../components/Header.astro";
+import Footer from "../../components/Footer.astro";
+import FormattedDate from "../../components/FormattedDate.astro";
+import { getGeneratedArticle } from "../../lib/generatedArticles";
+
+export const prerender = false;
+
+const article = Astro.params.slug
+	? await getGeneratedArticle(Astro.locals.runtime.env.GENERATED_ARTICLES, Astro.params.slug)
+	: undefined;
+
+if (!article || article.status !== "published") {
+	return new Response("Not found", { status: 404 });
+}
+
+const paragraphs = article.body.split(/\n{2,}/).map((paragraph) => paragraph.trim()).filter(Boolean);
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<BaseHead title={article.title} description={article.summary} />
+		<style>
+			main {
+				width: 720px;
+			}
+			.date,
+			.disclaimer {
+				color: rgb(var(--gray));
+			}
+			.sources {
+				margin-top: 2rem;
+			}
+			.sources li {
+				margin-bottom: 0.5rem;
+			}
+			.disclaimer {
+				border-top: 1px solid rgb(var(--gray-light));
+				margin-top: 2rem;
+				padding-top: 1rem;
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<article>
+				<p class="date">
+					Updated <FormattedDate date={new Date(article.updatedAt)} />
+				</p>
+				<h1>{article.title}</h1>
+				<p><strong>{article.summary}</strong></p>
+				{paragraphs.map((paragraph) => <p>{paragraph}</p>)}
+				<section class="sources" aria-labelledby="sources-heading">
+					<h2 id="sources-heading">Sources</h2>
+					<ul>
+						{
+							article.sources.map((source) => (
+								<li>
+									<a href={source.url}>{source.title}</a>
+								</li>
+							))
+						}
+					</ul>
+				</section>
+				<p class="disclaimer">{article.disclaimer}</p>
+			</article>
+		</main>
+		<Footer />
+	</body>
+</html>

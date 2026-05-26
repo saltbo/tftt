@@ -55,6 +55,50 @@ All commands are run from the root of the project, from a terminal:
 | `npm run build && npm run deploy` | Deploy your production site to Cloudflare        |
 | `npm wrangler tail`               | View real-time logs for all Workers              |
 
+## Generated Articles
+
+Runtime generated articles are stored in the `GENERATED_ARTICLES` Cloudflare KV binding and
+served from `/topics`.
+
+Create the KV namespace and set secrets before deploying:
+
+```bash
+npx wrangler kv namespace create GENERATED_ARTICLES
+npx wrangler secret put TFTT_API_TOKEN
+npx wrangler secret put AMA_API_BASE_URL
+npx wrangler secret put AMA_API_TOKEN
+npx wrangler secret put AMA_AGENT_ID
+npx wrangler secret put AMA_ENVIRONMENT_ID
+```
+
+Replace `PUBLIC_SITE_URL` in `wrangler.json` with the deployed tftt origin. Keep the AMA
+OpenAPI host, API token, agent id, and environment id in Cloudflare secrets. `AMA_API_BASE_URL`
+should point at the AMA API root, for example `https://ama.example.com/api`.
+
+Manual article upsert:
+
+```bash
+curl -X PUT "https://example.com/api/articles/canadian-bank-account-signup-bonuses" \
+  -H "Authorization: Bearer $TFTT_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  --data '{
+    "title": "Canadian bank account signup bonuses",
+    "summary": "Current Canadian chequing account signup offers.",
+    "body": "Generated article body.",
+    "status": "published",
+    "sources": [{"title": "Bank offer page", "url": "https://example.com/offer"}],
+    "disclaimer": "Informational content only, not financial advice.",
+    "updatedAt": "2026-05-26T12:00:00.000Z"
+  }'
+```
+
+Manual generation trigger:
+
+```bash
+curl -X POST "https://example.com/api/article-generation-runs" \
+  -H "Authorization: Bearer $TFTT_API_TOKEN"
+```
+
 ## 👀 Want to learn more?
 
 Check out [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
